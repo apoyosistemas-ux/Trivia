@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COPA MUNDIAL 2050: EL MONSTRUO DEL CAMPO</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Neon Glow Effects & Glassmorphism Panels */
+        .neon-border-green {
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.4), inset 0 0 10px rgba(0, 255, 102, 0.2);
+            border: 1.5px solid rgba(0, 255, 102, 0.75);
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4), inset 0 0 10px rgba(0, 243, 255, 0.2);
+            border: 1.5px solid rgba(0, 243, 255, 0.75);
+        }
+        .neon-border-gold {
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.5), inset 0 0 12px rgba(255, 204, 0, 0.25);
+            border: 1.5px solid rgba(255, 204, 0, 0.85);
+        }
+        .neon-border-red {
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.5), inset 0 0 10px rgba(255, 0, 85, 0.2);
+            border: 1.5px solid rgba(255, 0, 85, 0.75);
+        }
+        .text-glow-green {
+            text-shadow: 0 0 12px rgba(0, 255, 102, 0.9);
+        }
+        .text-glow-gold {
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.9);
+        }
+        .text-glow-cyan {
+            text-shadow: 0 0 12px rgba(0, 243, 255, 0.9);
+        }
+        
+        /* Stadium HUD Scoreboard Glass Surface */
+        .glass-scoreboard {
+            background: rgba(8, 15, 30, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Screen Shake & Damage Glitch Animations */
+        @keyframes screenShake {
+            0% { transform: translate(0, 0); }
+            15% { transform: translate(-16px, 12px); }
+            30% { transform: translate(16px, -12px); }
+            45% { transform: translate(-12px, -8px); }
+            60% { transform: translate(12px, 8px); }
+            75% { transform: translate(-6px, 4px); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake-screen {
+            animation: screenShake 0.45s ease-in-out;
+        }
+
+        @keyframes glitchFlash {
+            0% { opacity: 0; }
+            25% { opacity: 0.85; background-color: rgba(255, 0, 85, 0.65); }
+            100% { opacity: 0; }
+        }
+        .glitch-flash {
+            animation: glitchFlash 0.5s ease-out;
+        }
+
+        /* Stadium Scanline Overlay */
+        .stadium-scanline {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(0, 255, 102, 0.02),
+                rgba(0, 0, 255, 0.01),
+                rgba(255, 0, 85, 0.02)
+            );
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Pop In Modal Animation */
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop-in {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen overflow-hidden select-none bg-slate-950">
+
+    <!-- MAIN GRAPHICS CANVAS -->
+    <canvas id="stadiumCanvas" class="absolute inset-0 w-full h-full z-0"></canvas>
+
+    <!-- SCANLINE EFFECT OVERLAY -->
+    <div class="stadium-scanline absolute inset-0 z-10"></div>
+
+    <!-- DAMAGE FLASH OVERLAY -->
+    <div id="damageOverlay" class="absolute inset-0 z-15 pointer-events-none opacity-0"></div>
+
+    <!-- MAIN GAME HUD & INTERFACE -->
+    <div class="relative z-20 w-full h-full flex flex-col justify-between p-3 md:p-5 pointer-events-none">
+        
+        <!-- TOP SCOREBOARD HEADER -->
+        <header class="w-full flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
+            
+            <!-- CIBER FUTBOLISTA PLAYER HUD -->
+            <div class="glass-scoreboard rounded-2xl p-3 md:px-5 md:py-3 neon-border-cyan flex items-center gap-3 min-w-[240px]">
+                <div class="relative w-12 h-12 rounded-xl bg-cyan-950 border border-cyan-400 flex items-center justify-center text-cyan-400 text-2xl font-bold shadow-lg">
+                    <i class="fa-solid fa-futbol"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 mb-0.5">
+                        <span class="font-orbitron text-xs font-bold text-cyan-300">CIBER-FUTBOLISTA</span>
+                        <span id="streakBadge" class="bg-amber-500/20 text-amber-400 text-[10px] font-orbitron font-extrabold px-2 py-0.5 rounded-full border border-amber-400/50">
+                            RACHA: <span id="streakCount">0</span> ⚡
+                        </span>
+                    </div>
+                    <div class="font-orbitron text-xs text-slate-300">
+                        PUNTOS: <strong id="scoreDisplay" class="text-amber-400 font-extrabold text-sm">0</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CENTER MATCH LEVEL DISPLAY -->
+            <div class="glass-scoreboard px-6 py-2.5 rounded-2xl text-center neon-border-gold flex flex-col items-center">
+                <span id="levelTournamentStage" class="font-orbitron text-xs text-amber-400 tracking-widest font-extrabold uppercase">
+                    NIVEL 1: FASE DE GRUPOS
+                </span>
+                <span id="monsterNameDisplay" class="font-orbitron text-sm md:text-lg text-white font-black text-glow-green my-0.5">
+                    CYBER-GUARDIÁN DEL GRUPO
+                </span>
+                <div class="flex items-center gap-3 text-xs font-orbitron text-slate-300">
+                    <span>ETAPA: <strong id="levelNumber" class="text-emerald-400 font-bold">1 / 7</strong></span>
+                    <span>•</span>
+                    <span>PREGUNTA: <strong id="questionProgress" class="text-cyan-400 font-bold">1 / 3</strong></span>
+                </div>
+            </div>
+
+            <!-- MONSTER HP & ICON HUD -->
+            <div class="glass-scoreboard rounded-2xl p-3 md:px-5 md:py-3 neon-border-red flex items-center gap-3 min-w-[260px] justify-end">
+                <div class="text-right flex-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <span id="monsterTitleDisplay" class="font-orbitron text-xs font-bold text-rose-400">MONSTRUO DEL ARCO</span>
+                        <span id="monsterHpText" class="font-orbitron text-xs font-black text-rose-400">300 / 300 HP</span>
+                    </div>
+                    <!-- Monster HP Bar -->
+                    <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="monsterHpBar" class="h-full bg-gradient-to-r from-purple-600 via-rose-500 to-red-500 rounded-full transition-all duration-300 w-full"></div>
+                    </div>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-rose-950 border border-rose-500 flex items-center justify-center text-rose-400 text-2xl font-bold shadow-lg">
+                    <i id="monsterIcon" class="fa-solid fa-ghost"></i>
+                </div>
+            </div>
+
+            <!-- CONTROL BUTTONS -->
+            <div class="flex gap-2">
+                <button id="btnSoundToggle" class="glass-scoreboard p-3 rounded-xl text-cyan-400 hover:text-white hover:border-cyan-400 transition-all">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button id="btnPause" class="glass-scoreboard p-3 rounded-xl text-cyan-400 hover:text-white hover:border-cyan-400 transition-all">
+                    <i class="fa-solid fa-pause"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- BOTTOM TRIVIA QUESTION & MATCH OPTIONS PANEL -->
+        <div class="w-full max-w-4xl mx-auto pointer-events-auto">
+            <div id="questionPanel" class="glass-scoreboard rounded-2xl p-4 md:p-6 neon-border-green shadow-2xl relative transition-all duration-300">
+                
+                <!-- QUESTION TIMER PROGRESS BAR -->
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-3 border border-slate-700">
+                    <div id="questionTimerBar" class="h-full bg-emerald-400 w-full transition-all duration-100 linear"></div>
+                </div>
+
+                <!-- QUESTION TEXT -->
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                        <span class="inline-block px-3 py-0.5 rounded bg-emerald-950 text-emerald-400 font-orbitron text-[11px] border border-emerald-500/40 font-bold mb-1.5" id="questionCategoryTag">
+                            TRIVIA DE LA COPA MUNDIAL DE LA FIFA
+                        </span>
+                        <h2 id="questionText" class="font-orbitron text-sm md:text-base text-white font-bold leading-relaxed">
+                            Cargando datos futbolísticos de la FIFA...
+                        </h2>
+                    </div>
+                    <div class="text-right min-w-[65px]">
+                        <span id="timerText" class="font-orbitron text-xl font-black text-amber-400">20s</span>
+                    </div>
+                </div>
+
+                <!-- 4 TRIVIA CHOICE BUTTONS -->
+                <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Dynamic buttons injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEEDBACK & TRIVIA EXPLANATION MODAL -->
+    <div id="feedbackModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div id="feedbackCard" class="glass-scoreboard max-w-lg w-full rounded-2xl p-6 md:p-8 neon-border-green text-center relative animate-pop-in">
+            <div id="feedbackIconContainer" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 bg-emerald-500/20 text-emerald-400 border border-emerald-400">
+                <i id="feedbackIcon" class="fa-solid fa-futbol"></i>
+            </div>
+            <h3 id="feedbackTitle" class="font-orbitron text-xl md:text-2xl font-black text-white mb-1">
+                ¡GOOLAZO Y MANDOBLE AL MONSTRUO!
+            </h3>
+            <p id="feedbackDamageText" class="font-orbitron text-sm font-bold text-amber-400 mb-3">
+                -100 HP DAÑO DIRECTO AL TITÁN DEL ARCO
+            </p>
+            <div id="feedbackExplanation" class="text-xs md:text-sm text-slate-300 leading-relaxed bg-slate-900/90 p-4 rounded-xl border border-slate-700/80 mb-5 text-left">
+                Explicación histórica de la Copa Mundial aquí...
+            </div>
+            <button id="btnContinueFeedback" class="w-full py-3.5 px-6 rounded-xl font-orbitron font-black text-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-amber-400 hover:opacity-90 transition-all text-sm shadow-lg">
+                CONTINUAR EL PARTIDO <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- START MATCH MAIN MENU MODAL -->
+    <div id="menuModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4">
+        <div class="glass-scoreboard max-w-2xl w-full rounded-2xl p-6 md:p-8 neon-border-gold text-center">
+            <div class="inline-block p-4 rounded-2xl bg-amber-500/10 border border-amber-400/40 text-amber-400 text-5xl mb-3">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h1 class="font-orbitron text-2xl md:text-4xl font-black text-white tracking-wider mb-1 text-glow-gold">
+                COPA MUNDIAL 2050
+            </h1>
+            <p class="font-orbitron text-xs md:text-sm text-emerald-400 font-extrabold tracking-widest uppercase mb-4">
+                EL MONSTRUO DEL CAMPO • SISTEMA ANTI-REPETICIÓN ABSOLUTO
+            </p>
+            
+            <p class="text-xs md:text-sm text-slate-300 mb-6 max-w-lg mx-auto leading-relaxed">
+                Demuestra tus conocimientos sobre la <strong class="text-amber-400">Copa Mundial de la FIFA</strong>. Cada gol destruye al Monstruo del Arco. <strong class="text-rose-400">Si te equivocas, el monstruo contraataca y reinicia el nivel actual con preguntas totalmente inéditas.</strong>
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 max-w-md mx-auto">
+                <button id="btnStartGame" class="w-full py-3.5 px-6 rounded-xl font-orbitron font-black text-black bg-gradient-to-r from-emerald-400 to-cyan-400 hover:opacity-90 transition-all text-sm flex items-center justify-center gap-2 shadow-xl">
+                    <i class="fa-solid fa-play"></i> INICIAR MUNDIAL
+                </button>
+                <button id="btnHowToPlay" class="w-full py-3.5 px-6 rounded-xl font-orbitron font-bold text-amber-300 border border-amber-400/50 hover:bg-amber-950/40 transition-all text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i> REGLAS Y NIVELES
+                </button>
+            </div>
+
+            <div class="text-[11px] text-slate-500 border-t border-slate-800 pt-3 font-orbitron">
+                PROYECTO TÉCNICO EN SISTEMAS 2026 • BANCO DE +50 PREGUNTAS Y CERO REPETICIÓN
+            </div>
+        </div>
+    </div>
+
+    <!-- RULES & TOURNAMENT MODAL -->
+    <div id="rulesModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-scoreboard max-w-lg w-full rounded-2xl p-6 neon-border-cyan">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+                <h3 class="font-orbitron text-lg font-bold text-cyan-400 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> ESTRUCTURA Y CERO REPETICIÓN
+                </h3>
+                <button id="btnCloseRules" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-2.5 text-xs text-slate-300 max-h-72 overflow-y-auto pr-2">
+                <p><strong class="text-emerald-400">Nivel 1: Fase de Grupos</strong> — Cyber-Guardián Delta (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 2: Octavos de Final</strong> — Mecha-Coloso Octavo (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 3: Cuartos de Final</strong> — Hydra-Net Cuartos (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 4: Semifinales</strong> — Spectre-Glitch Semifinal (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 5: Gran Final</strong> — Dark-Nexus Finalista (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 6: Prórroga Épica</strong> — Titan-Overlord Prórroga (3 aciertos)</p>
+                <p><strong class="text-emerald-400">Nivel 7: Penales Legendarios</strong> — NEXUS MUNDIAL OMEGA (3 aciertos)</p>
+                <hr class="border-slate-800 my-2">
+                <p class="text-amber-400 font-semibold">⚡ Garantía Anti-Repetición: El juego registra cada pregunta vista en `seenQuestionIds`. Si reinicias un nivel tras un error, el sistema extrae preguntas NUEVAS que no se han mostrado previamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAUSE MENU MODAL -->
+    <div id="pauseModal" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-scoreboard max-w-sm w-full rounded-2xl p-6 text-center neon-border-cyan">
+            <h3 class="font-orbitron text-xl font-extrabold text-white mb-4">PARTIDO EN PAUSA</h3>
+            <div class="space-y-3">
+                <button id="btnResume" class="w-full py-3 rounded-xl font-orbitron font-bold bg-cyan-400 text-black hover:bg-cyan-300 transition-all">
+                    REANUDAR
+                </button>
+                <button id="btnRestartLevel" class="w-full py-3 rounded-xl font-orbitron font-bold border border-slate-700 text-slate-300 hover:text-white hover:border-cyan-400 transition-all">
+                    REINICIAR NIVEL
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY CHAMPION MODAL -->
+    <div id="victoryModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+        <div class="glass-scoreboard max-w-xl w-full rounded-2xl p-6 md:p-8 text-center neon-border-gold animate-pop-in">
+            <div class="w-24 h-24 rounded-full mx-auto flex items-center justify-center text-5xl mb-3 bg-amber-500/20 text-amber-400 border-2 border-amber-400 shadow-2xl">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="font-orbitron text-3xl md:text-4xl font-black text-white mb-1 text-glow-gold">
+                ¡ERES CAMPEÓN DEL MUNDO!
+            </h2>
+            <p class="font-orbitron text-xs md:text-sm text-emerald-400 font-extrabold mb-4 uppercase tracking-widest">
+                HAS DESTRUIDO A NEXUS MUNDIAL OMEGA Y LEVANTADO LA COPA DORADA
+            </p>
+            <div id="victoryStats" class="bg-slate-900/90 p-4 rounded-xl border border-slate-700/80 text-xs md:text-sm text-slate-200 mb-6 text-left leading-relaxed">
+                <!-- Dynamic stats inserted here -->
+            </div>
+            <button id="btnPlayAgain" class="w-full py-4 px-6 rounded-xl font-orbitron font-black text-black bg-gradient-to-r from-amber-400 via-emerald-400 to-cyan-400 hover:opacity-90 transition-all text-base shadow-2xl">
+                JUGAR OTRO MUNDIAL <i class="fa-solid fa-rotate-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        /* WEB AUDIO API SOUND SYNTHESIZER */
+        class SoundSynth {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContextClass();
+                }
+            }
+
+            playWhistle() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(2400, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1900, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            }
+
+            playKick() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(35, this.ctx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.35);
+            }
+
+            playMonsterHit() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(45, this.ctx.currentTime + 0.45);
+                gain.gain.setValueAtTime(0.7, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.45);
+            }
+
+            playLaserError() {
+                if (this.muted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(850, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.45);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.45);
+            }
+
+            playFanfare() {
+                if (this.muted || !this.ctx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + idx * 0.08);
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + idx * 0.08 + 0.35);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + idx * 0.08);
+                    osc.stop(this.ctx.currentTime + idx * 0.08 + 0.35);
+                });
+            }
+        }
+
+        const audio = new SoundSynth();
+
+        /* MASTER QUESTION BANK (56 UNIQUE FIFA WORLD CUP QUESTIONS) */
+        const MASTER_QUESTIONS = [
+            {
+                id: 1,
+                q: "¿Qué selección nacional ostenta más títulos de la Copa del Mundo de la FIFA en la historia?",
+                options: ["Alemania", "Brasil (5 títulos)", "Argentina", "Italia"],
+                correct: 1,
+                explanation: "Brasil es pentacampeón mundial (1958, 1962, 1970, 1994, 2002)."
+            },
+            {
+                id: 2,
+                q: "¿En qué país sudamericano se celebró la primera Copa Mundial de Fútbol en 1930?",
+                options: ["Uruguay", "Brasil", "Argentina", "Chile"],
+                correct: 0,
+                explanation: "Uruguay albergó y conquistó el primer Mundial en 1930 venciendo 4-2 a Argentina."
+            },
+            {
+                id: 3,
+                q: "¿Quién es el máximo goleador histórico de las Copas del Mundo con 16 anotaciones?",
+                options: ["Pelé", "Cristiano Ronaldo", "Miroslav Klose", "Ronaldo Nazário"],
+                correct: 2,
+                explanation: "Miroslav Klose anotó 16 goles representando a Alemania entre 2002 y 2014."
+            },
+            {
+                id: 4,
+                q: "¿Qué selección se consagró campeona mundial en la Copa de Qatar 2022?",
+                options: ["Francia", "Argentina", "Croacia", "Marruecos"],
+                correct: 1,
+                explanation: "Argentina venció a Francia en penaltis en una final inolvidable para alzar su tercer título."
+            },
+            {
+                id: 5,
+                q: "¿Quién anotó el célebre gol de 'La Mano de Dios' a Inglaterra en México 1986?",
+                options: ["Pelé", "Diego Armando Maradona", "Mario Kempes", "Zico"],
+                correct: 1,
+                explanation: "Maradona protagonizó 'La Mano de Dios' y el 'Gol del Siglo' en el Estadio Azteca."
+            },
+            {
+                id: 6,
+                q: "¿Qué estrella ganó su primer Mundial con solo 17 años en Suecia 1958?",
+                options: ["Pelé", "Garrincha", "Johan Cruyff", "Kylian Mbappé"],
+                correct: 0,
+                explanation: "Pelé maravilló al planeta con 17 años anotando dos goles en la final de 1958."
+            },
+            {
+                id: 7,
+                q: "¿Cuál fue la primera selección africana en avanzar a Semifinales en Qatar 2022?",
+                options: ["Nigeria", "Ghana", "Marruecos", "Camerún"],
+                correct: 2,
+                explanation: "Marruecos hizo historia eliminando a España y Portugal para llegar a Semifinales."
+            },
+            {
+                id: 8,
+                q: "¿Qué delantero francés convirtió un triplete ('hat-trick') en la final de Qatar 2022?",
+                options: ["Antoine Griezmann", "Kylian Mbappé", "Olivier Giroud", "Karim Benzema"],
+                correct: 1,
+                explanation: "Kylian Mbappé convirtió 3 goles deslumbrantes en la histórica final de 2022."
+            },
+            {
+                id: 9,
+                q: "¿Qué país fue sede en 1970 y 1986 y será el primer triple anfitrión en 2026?",
+                options: ["Brasil", "Argentina", "México", "Colombia"],
+                correct: 2,
+                explanation: "México será sede por tercera vez en 2026 junto a Estados Unidos y Canadá."
+            },
+            {
+                id: 10,
+                q: "¿Quién capitaneó y custodió la portería de España en la conquista de Sudáfrica 2010?",
+                options: ["Iker Casillas", "Víctor Valdés", "Carles Puyol", "David de Gea"],
+                correct: 0,
+                explanation: "Iker Casillas atajó un mano a mano clave a Robben y alzó la copa dorada."
+            },
+            {
+                id: 11,
+                q: "¿En qué Mundial se utilizó oficialmente por primera vez la asistencia arbitral VAR?",
+                options: ["Brasil 2014", "Rusia 2018", "Qatar 2022", "Sudáfrica 2010"],
+                correct: 1,
+                explanation: "Rusia 2018 introdujo el sistema de videoarbitraje VAR en la FIFA."
+            },
+            {
+                id: 12,
+                q: "¿Qué selección disputó tres finales mundiales (1974, 1978, 2010) sin ganar ninguna?",
+                options: ["Bélgica", "Países Bajos", "Inglaterra", "Portugal"],
+                correct: 1,
+                explanation: "Países Bajos obtuve tres subcampeonatos mundiales a lo largo de su historia."
+            },
+            {
+                id: 13,
+                q: "¿Cuál fue el abultado marcador de la Semifinal entre Alemania y Brasil en 2014?",
+                options: ["Alemania 5 - 0", "Alemania 7 - 1", "Alemania 4 - 1", "Alemania 3 - 2"],
+                correct: 1,
+                explanation: "El histórico 'Mineirazo' finalizó 7-1 a favor del conjunto germano."
+            },
+            {
+                id: 14,
+                q: "¿Qué astro italiano erró el penal decisivo en la final de EE.UU. 1994 ante Brasil?",
+                options: ["Paolo Maldini", "Roberto Baggio", "Franco Baresi", "Alessandro Del Piero"],
+                correct: 1,
+                explanation: "Roberto Baggio remató por encima del travesaño otorgando el tetracampeonato a Brasil."
+            },
+            {
+                id: 15,
+                q: "¿Quién ganó el Balón de Oro al Mejor Jugador en los Mundiales 2014 y 2022?",
+                options: ["James Rodríguez", "Lionel Messi", "Thomas Müller", "Neymar Jr."],
+                correct: 1,
+                explanation: "Lionel Messi fue galardonado como mejor futbolista del torneo en 2014 y 2022."
+            },
+            {
+                id: 16,
+                q: "¿Qué país europeo ganó el Mundial de 1998 derrotando 3-0 a Brasil en la final?",
+                options: ["Alemania", "Francia", "Italia", "Inglaterra"],
+                correct: 1,
+                explanation: "Francia ganó su primer título con dos goles de cabeza de Zinedine Zidane."
+            },
+            {
+                id: 17,
+                q: "¿Quién anotó el gol agónico de la victoria para Alemania en la final de Brasil 2014?",
+                options: ["Miroslav Klose", "Mario Götze", "Bastian Schweinsteiger", "Toni Kroos"],
+                correct: 1,
+                explanation: "Mario Götze definió de volea en el minuto 113 de la prórroga."
+            },
+            {
+                id: 18,
+                q: "¿Qué selección conquistó consecutivamente los Mundiales de 1934 y 1938?",
+                options: ["Brasil", "Italia", "Uruguay", "Alemania"],
+                correct: 1,
+                explanation: "Italia dirigida por Vittorio Pozzo fue el primer equipo en lograr el bicampeonato."
+            },
+            {
+                id: 19,
+                q: "¿Qué balón icónico de cascos negros y blancos se estrenó en México 1970?",
+                options: ["Tango", "Telstar", "Jabulani", "Brazuca"],
+                correct: 1,
+                explanation: "El Adidas Telstar fue diseñado para ser visible en televisores de blanco y negro."
+            },
+            {
+                id: 20,
+                q: "¿Qué delantero tiene el récord insuperable de 13 goles en un solo Mundial (1958)?",
+                options: ["Just Fontaine", "Gerd Müller", "Pelé", "Eusébio"],
+                correct: 0,
+                explanation: "Just Fontaine marcó 13 goles en solo 6 partidos vistiendo la camiseta de Francia."
+            },
+            {
+                id: 21,
+                q: "¿En qué minuto anotó Andrés Iniesta el gol de la victoria para España en 2010?",
+                options: ["Minuto 95", "Minuto 105", "Minuto 116", "Minuto 120"],
+                correct: 2,
+                explanation: "Andrés Iniesta definió en el minuto 116 ante Países Bajos."
+            },
+            {
+                id: 22,
+                q: "¿Qué arquero argentino fue héroe atajando penales en la Semifinal de Brasil 2014?",
+                options: ["Emiliano Martínez", "Sergio Romero", "Franco Armani", "Wilfredo Caballero"],
+                correct: 1,
+                explanation: "Sergio 'Chiquito' Romero detuvo los lanzamientos de Vlaar y Sneijder."
+            },
+            {
+                id: 23,
+                q: "¿Qué nombre recibe el histórico gol de Maradona tras eludir a 5 ingleses en 1986?",
+                options: ["El Gol del Siglo", "La Tijera Mágica", "El Rayo del Azteca", "La Mano de Dios"],
+                correct: 0,
+                explanation: "La impresionante jugada individual de Diego fue votada como 'El Gol del Siglo'."
+            },
+            {
+                id: 24,
+                q: "¿Qué país sudamericano organizó el Mundial de 1962 tras sufrir un gran terremoto?",
+                options: ["Chile", "Argentina", "Uruguay", "Perú"],
+                correct: 0,
+                explanation: "Chile albergó la cita mundialista de 1962 con una heroica reconstrucción."
+            },
+            {
+                id: 25,
+                q: "¿En qué edición se estrenó el diseño del trofeo actual de la Copa Mundial de la FIFA?",
+                options: ["México 1970", "Alemania 1974", "Argentina 1978", "España 1982"],
+                correct: 1,
+                explanation: "Alemania 1974 estrenó la escultura de dos figuras sosteniendo el planeta Tierra."
+            },
+            {
+                id: 26,
+                q: "¿Qué arquero atajó la inolvidable pelota a Kolo Muani en el minuto 123 de Qatar 2022?",
+                options: ["Hugo Lloris", "Emiliano Martínez", "Dominik Livaković", "Yassine Bounou"],
+                correct: 1,
+                explanation: "El 'Dibu' Martínez ejecutó la atajada más dramática en la historia de las finales."
+            },
+            {
+                id: 27,
+                q: "¿Cuál fue la primera final de Mundial definida en tanda de penaltis?",
+                options: ["EE.UU. 1994", "Francia 1998", "Alemania 2006", "México 1986"],
+                correct: 0,
+                explanation: "En EE.UU. 1994, Brasil venció 3-2 a Italia desde el punto penal tras empatar 0-0."
+            },
+            {
+                id: 28,
+                q: "¿Qué DT lideró a Argentina para ganar Copa América, Finalissima y Mundial 2022?",
+                options: ["Alejandro Sabella", "Lionel Scaloni", "Marcelo Bielsa", "Jorge Sampaoli"],
+                correct: 1,
+                explanation: "Lionel Scaloni comandó a la Selección Argentina hacia el histórico triplete."
+            },
+            {
+                id: 29,
+                q: "¿Cuántos goles anotó Ronaldo Nazário para consagrar a Brasil en Corea-Japón 2002?",
+                options: ["6 goles", "8 goles", "10 goles", "5 goles"],
+                correct: 1,
+                explanation: "Ronaldo 'El Fenómeno' anotó 8 goles, incluidos dos en la final ante Alemania."
+            },
+            {
+                id: 30,
+                q: "¿Qué inglés anotó el primer hat-trick en una final de Copa Mundial (1966)?",
+                options: ["Bobby Charlton", "Geoff Hurst", "Gary Lineker", "Bobby Moore"],
+                correct: 1,
+                explanation: "Geoff Hurst anotó 3 goles en la victoria 4-2 de Inglaterra sobre Alemania."
+            },
+            {
+                id: 31,
+                q: "¿Qué nombre recibe el triunfo 2-1 de Uruguay sobre Brasil en el Estadio Maracaná en 1950?",
+                options: ["El Aztecazo", "El Maracanazo", "El Centenariazo", "El Cordobazo"],
+                correct: 1,
+                explanation: "El 'Maracanazo' es una de las mayores hazañas deportivas de la historia."
+            },
+            {
+                id: 32,
+                q: "¿En qué Mundial se introdujeron por primera vez las tarjetas amarillas y rojas?",
+                options: ["Inglaterra 1966", "México 1970", "Alemania 1974", "Chile 1962"],
+                correct: 1,
+                explanation: "México 1970 estrenó las tarjetas para agilizar la comunicación arbitral."
+            },
+            {
+                id: 33,
+                q: "¿Quién fue el jugador más longevo en disputar un Mundial con 45 años en Rusia 2018?",
+                options: ["Roger Milla", "Essam El-Hadary", "Faryd Mondragón", "Dino Zoff"],
+                correct: 1,
+                explanation: "El arquero egipcio Essam El-Hadary jugó con 45 años y 161 días."
+            },
+            {
+                id: 34,
+                q: "¿Cómo se llamaba la primera mascota oficial de un Mundial (Inglaterra 1966)?",
+                options: ["Willie el León", "Gauchito", "Pique", "Footix"],
+                correct: 0,
+                explanation: "'World Cup Willie' fue un león vestido con la bandera del Reino Unido."
+            },
+            {
+                id: 35,
+                q: "¿Qué estrella fue expulsada en la final de 2006 por propinar un cabezazo a Materazzi?",
+                options: ["Thierry Henry", "Zinedine Zidane", "Patrick Vieira", "Franck Ribéry"],
+                correct: 1,
+                explanation: "Zidane cerró su carrera profesional con esa dolorosa expulsión en Alemania 2006."
+            },
+            {
+                id: 36,
+                q: "¿Qué selección ostenta el récord de más pases completados en un solo partido de Mundial?",
+                options: ["Brasil", "España", "Alemania", "Argentina"],
+                correct: 1,
+                explanation: "España completó más de 1,000 pases en partidos de Rusia 2018 y Qatar 2022."
+            },
+            {
+                id: 37,
+                q: "¿Qué delantero ruso ostenta el récord de 5 goles en un solo partido de Mundial (1994)?",
+                options: ["Oleg Salenko", "Andriy Shevchenko", "Valery Karpin", "Denis Cheryshev"],
+                correct: 0,
+                explanation: "Oleg Salenko le marcó 5 goles a Camerún en la fase de grupos de EE.UU. 1994."
+            },
+            {
+                id: 38,
+                q: "¿Quién anotó el gol más rápido en la historia de los Mundiales (11 segundos en 2002)?",
+                options: ["Hakan Şükür", "Bryan Robson", "Clint Dempsey", "Bernard Lacombe"],
+                correct: 0,
+                explanation: "El turco Hakan Şükür le anotó a Corea del Sur a los 11 segundos de iniciado el juego."
+            },
+            {
+                id: 39,
+                q: "¿Qué goleador italiano guio a su selección al título de España 1982 con 6 anotaciones?",
+                options: ["Paolo Rossi", "Roberto Baggio", "Gianluca Vialli", "Alessandro Altobelli"],
+                correct: 0,
+                explanation: "Paolo Rossi resurgió para convertirse en el héroe inolvidable de la 'Azzurra'."
+            },
+            {
+                id: 40,
+                q: "¿Qué futbolistas comparten el récord histórico de más partidos jugados en Mundiales (26)?",
+                options: ["Pelé y Maradona", "Lionel Messi y Lothar Matthäus", "Cristiano y Klose", "Casillas y Cafú"],
+                correct: 1,
+                explanation: "Lionel Messi superó a Lothar Matthäus alcanzando 26 encuentros en Qatar 2022."
+            },
+            {
+                id: 41,
+                q: "¿Quién fue el goleador más veterano en anotar en un Mundial con 42 años (EE.UU. 1994)?",
+                options: ["Roger Milla", "Didier Drogba", "Samuel Eto'o", "George Weah"],
+                correct: 0,
+                explanation: "El camerunés Roger Milla le anotó a Rusia con 42 años y 39 días."
+            },
+            {
+                id: 42,
+                q: "¿Qué selección deslumbró al mundo apodada 'La Dinamita Roja' en México 1986?",
+                options: ["Bélgica", "Dinamarca", "Suecia", "Polonia"],
+                correct: 1,
+                explanation: "Dinamarca practicó un fútbol vistoso y ofensivo comandada por Michael Laudrup."
+            },
+            {
+                id: 43,
+                q: "¿Quién fue el primer ser humano en ganar el Mundial como jugador y como Entrenador?",
+                options: ["Franz Beckenbauer", "Mario Zagallo", "Didier Deschamps", "Johan Cruyff"],
+                correct: 1,
+                explanation: "Mario 'Lobo' Zagallo ganó como jugador en 1958/1962 y como DT de Brasil en 1970."
+            },
+            {
+                id: 44,
+                q: "¿Quién fue el primer máximo goleador (Bota de Oro) en la historia de los Mundiales (1930)?",
+                options: ["Guillermo Stábile", "Pedro Cea", "Alcides Ghiggia", "Lucien Laurent"],
+                correct: 0,
+                explanation: "El argentino Guillermo Stábile convirtió 8 goles en la Copa Mundial de 1930."
+            },
+            {
+                id: 45,
+                q: "¿Qué país ganó el Mundial de Italia 1990 con un gol de penal de Andreas Brehme?",
+                options: ["Alemania", "Argentina", "Italia", "Inglaterra"],
+                correct: 0,
+                explanation: "Alemania derrotó 1-0 a Argentina en la final disputada en el Estadio Olímpico de Roma."
+            },
+            {
+                id: 46,
+                q: "¿Qué selección fue subcampeona del mundo en Rusia 2018 con Luka Modrić como Balón de Oro?",
+                options: ["Croacia", "Bélgica", "Inglaterra", "Suiza"],
+                correct: 0,
+                explanation: "Croacia firmó una hazaña histórica alcanzando la gran final de 2018."
+            },
+            {
+                id: 47,
+                q: "¿Qué famoso oráculo animal predecía con 100% de éxito los triunfos en Sudáfrica 2010?",
+                options: ["Paul el Pulpo", "Skipper el Pingüino", "Nico el Gato", "Mani el Perico"],
+                correct: 0,
+                explanation: "Paul el Pulpo acertó todos los resultados de Alemania y la final ganada por España."
+            },
+            {
+                id: 48,
+                q: "¿En qué majestuoso estadio se disputó la gran final de la Copa Mundial de Qatar 2022?",
+                options: ["Estadio Lusail", "Estadio Al Bayt", "Estadio 974", "Estadio Khalifa"],
+                correct: 0,
+                explanation: "El Estadio Iconico de Lusail albergó a casi 90,000 espectadores en la final."
+            },
+            {
+                id: 49,
+                q: "¿Qué selección ostenta el récord de más goles anotados por un equipo en un torneo (27 goles en 1954)?",
+                options: ["Brasil", "Hungría", "Alemania", "Uruguay"],
+                correct: 1,
+                explanation: "La 'Mágica Hungría' de Ferenc Puskás convirtió 27 goles en la Copa de Suiza 1954."
+            },
+            {
+                id: 50,
+                q: "¿Qué estrella colombiana ganó la Bota de Oro al máximo goleador en Brasil 2014 (6 goles)?",
+                options: ["Radamel Falcao", "James Rodríguez", "Juan Cuadrado", "Teófilo Gutiérrez"],
+                correct: 1,
+                explanation: "James Rodríguez deslumbró con 6 goles, incluido el mejor gol del torneo ante Uruguay."
+            },
+            {
+                id: 51,
+                q: "¿Qué único futbolista ha jugado tres finales consecutivas de la Copa Mundial (1994, 1998, 2002)?",
+                options: ["Ronaldo Nazário", "Cafú", "Roberto Carlos", "Lothar Matthäus"],
+                correct: 1,
+                explanation: "El lateral brasileño Cafú disputó tres finales consecutivas ganando las de 1994 y 2002."
+            },
+            {
+                id: 52,
+                q: "¿Qué legendario estadio presenció la coronación de Pelé en 1970 y de Maradona en 1986?",
+                options: ["Estadio Maracaná", "Estadio Azteca", "Estadio Wembley", "Estadio Olímpico de Roma"],
+                correct: 1,
+                explanation: "El Estadio Azteca de la Ciudad de México es el único coloso en albergar dos coronaciones épicas."
+            },
+            {
+                id: 53,
+                q: "¿Qué arquero atajó tres penales a España en la definición por penaltis de Qatar 2022?",
+                options: ["Yassine Bounou 'Bono'", "Dominik Livaković", "Unai Simón", "Wojciech Szczęsny"],
+                correct: 0,
+                explanation: "'Bono' mantuvo su arco invicto en la tanda permitiendo el avance histórico de Marruecos."
+            },
+            {
+                id: 54,
+                q: "¿Qué entrenador se consagró campeón del mundo como capitán en 1998 y como DT en 2018 con Francia?",
+                options: ["Zinedine Zidane", "Didier Deschamps", "Laurent Blanc", "Michel Platini"],
+                correct: 1,
+                explanation: "Didier Deschamps levantó el trofeo como capitán en París y como seleccionador en Moscú."
+            },
+            {
+                id: 55,
+                q: "¿Qué selección centroamericana sorprendió al planeta ganando el 'Grupo de la Muerte' en Brasil 2014?",
+                options: ["Honduras", "Costa Rica", "Panamá", "México"],
+                correct: 1,
+                explanation: "Costa Rica superó a Uruguay, Italia e Inglaterra avanzando invicta a Cuartos de Final."
+            },
+            {
+                id: 56,
+                q: "¿Qué selección africana derrotó al campeón defensor Francia en el partido inaugural de 2002?",
+                options: ["Senegal", "Camerún", "Nigeria", "Sudáfrica"],
+                correct: 0,
+                explanation: "Senegal sorprendió al mundo venciendo 1-0 a Francia con gol de Papa Bouba Diop."
+            }
+        ];
+
+        /* LEVEL STRUCTURE DEFINITION */
+        const TOURNAMENT_STAGES = [
+            { id: 1, stage: "NIVEL 1: FASE DE GRUPOS", bossName: "CYBER-GUARDIÁN DELTA", bossTitle: "TITÁN DEL GRUPO A", hp: 300, icon: "fa-ghost" },
+            { id: 2, stage: "NIVEL 2: OCTAVOS DE FINAL", bossName: "MECHA-COLOSO OCTAVO", bossTitle: "GUARDIÁN CIBERNÉTICO", hp: 300, icon: "fa-robot" },
+            { id: 3, stage: "NIVEL 3: CUARTOS DE FINAL", bossName: "HYDRA-NET CUARTOS", bossTitle: "MULTINODO DIGITAL", hp: 300, icon: "fa-bug" },
+            { id: 4, stage: "NIVEL 4: SEMIFINALES", bossName: "SPECTRE-GLITCH SEMIFINAL", bossTitle: "ESPECTRO CRONOMETRADO", hp: 300, icon: "fa-mask" },
+            { id: 5, stage: "NIVEL 5: GRAN FINAL", bossName: "DARK-NEXUS FINALISTA", bossTitle: "SOBERANO DEL ESTADIO", hp: 300, icon: "fa-skull" },
+            { id: 6, stage: "NIVEL 6: PRÓRROGA ÉPICA", bossName: "TITAN-OVERLORD PRÓRROGA", bossTitle: "COLOSO DEL TIEMPO EXTRA", hp: 300, icon: "fa-bolt" },
+            { id: 7, stage: "NIVEL 7: PENALES LEGENDARIOS", bossName: "NEXUS MUNDIAL OMEGA", bossTitle: "SUPERINTELIGENCIA DEL FÚTBOL", hp: 300, icon: "fa-crown" }
+        ];
+
+        /* GLOBAL STATE WITH SEEN QUESTION TRACKER FOR ZERO REPETITION */
+        let seenQuestionIds = new Set();
+        let currentLevelIdx = 0;
+        let currentLevelQuestions = [];
+        let currentQuestionInLevelIndex = 0;
+
+        let score = 0;
+        let goalStreak = 0;
+        let monsterHp = 300;
+        let maxMonsterHp = 300;
+        let totalCorrectAnswers = 0;
+
+        let questionTimer = null;
+        let timeLeft = 20;
+        let isPaused = false;
+
+        // Particle System & Canvas Queues
+        let particles = [];
+        let floatingTexts = [];
+        let plasmaShots = [];
+
+        let monsterHitTimer = 0;
+        let playerKickTimer = 0;
+        let monsterLaserTimer = 0;
+
+        /* DYNAMIC QUESTION EXTRACTOR (ZERO REPETITION GUARANTEE) */
+        function getUnseenQuestionsForLevel(count = 3) {
+            let available = MASTER_QUESTIONS.filter(q => !seenQuestionIds.has(q.id));
+            
+            // Safety fallback if entire 56-question pool is exhausted
+            if (available.length < count) {
+                seenQuestionIds.clear();
+                available = [...MASTER_QUESTIONS];
+            }
+
+            // Fisher-Yates Shuffle on available questions
+            for (let i = available.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [available[i], available[j]] = [available[j], available[i]];
+            }
+
+            const selected = available.slice(0, count);
+            selected.forEach(q => seenQuestionIds.add(q.id));
+            return selected;
+        }
+
+        /* CANVAS GRAPHICS ENGINE */
+        const canvas = document.getElementById("stadiumCanvas");
+        const ctx = canvas.getContext("2d");
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor(x, y, color, speed, size) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+                this.size = Math.random() * size + 2;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.03 + 0.015;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class FloatingText {
+            constructor(text, x, y, color) {
+                this.text = text;
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.life = 1.0;
+                this.vy = -2.5;
+            }
+            update() {
+                this.y += this.vy;
+                this.life -= 0.02;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.font = "900 22px Orbitron";
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 12;
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        class PlasmaBallShot {
+            constructor(startX, startY, targetX, targetY) {
+                this.startX = startX;
+                this.startY = startY;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.progress = 0;
+            }
+            update() {
+                this.progress += 0.07;
+            }
+            draw() {
+                ctx.save();
+                const curX = this.startX + (this.targetX - this.startX) * Math.min(1, this.progress);
+                const arcY = Math.sin(this.progress * Math.PI) * -80;
+                const curY = (this.startY + (this.targetY - this.startY) * Math.min(1, this.progress)) + arcY;
+                
+                // Trail
+                ctx.strokeStyle = '#00ff66';
+                ctx.lineWidth = 10;
+                ctx.shadowColor = '#00ff66';
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.moveTo(this.startX, this.startY);
+                ctx.lineTo(curX, curY);
+                ctx.stroke();
+
+                // Glowing Ball Core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(curX, curY, 14, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function drawStadiumBackground(time) {
+            // Dark Cyber Stadium Sky
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, '#020617');
+            grad.addColorStop(0.55, '#07152e');
+            grad.addColorStop(1, '#022c22');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Crowd Lights
+            for (let i = 0; i < 70; i++) {
+                const cx = (i * 32 + time * 0.06) % canvas.width;
+                const cy = 50 + Math.sin(i + time * 0.002) * 18;
+                ctx.fillStyle = i % 2 === 0 ? 'rgba(0, 243, 255, 0.45)' : 'rgba(255, 204, 0, 0.45)';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Floodlight Cones
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.1, 0);
+            ctx.lineTo(canvas.width * 0.35, canvas.height);
+            ctx.lineTo(canvas.width * 0.0, canvas.height);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.9, 0);
+            ctx.lineTo(canvas.width * 0.65, canvas.height);
+            ctx.lineTo(canvas.width * 1.0, canvas.height);
+            ctx.fill();
+
+            // Pitch Horizon
+            const pitchTop = canvas.height * 0.52;
+
+            // Perspective Field Grass Grid
+            ctx.strokeStyle = 'rgba(0, 255, 102, 0.18)';
+            ctx.lineWidth = 2;
+            for (let y = pitchTop; y < canvas.height; y += 22) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+
+            for (let x = -canvas.width; x < canvas.width * 2; x += 110) {
+                ctx.beginPath();
+                ctx.moveTo(x, canvas.height);
+                ctx.lineTo(canvas.width / 2 + (x - canvas.width / 2) * 0.25, pitchTop);
+                ctx.stroke();
+            }
+
+            // Cyber Net Structure
+            ctx.strokeStyle = '#00ff66';
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = '#00ff66';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width * 0.65, pitchTop + 40);
+            ctx.lineTo(canvas.width * 0.95, pitchTop + 40);
+            ctx.lineTo(canvas.width * 0.95, canvas.height - 20);
+            ctx.lineTo(canvas.width * 0.65, canvas.height - 20);
+            ctx.stroke();
+        }
+
+        function drawFutbolista(x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            if (playerKickTimer > 0) {
+                // Bicycle Kick / Super-shot stance
+                ctx.rotate(-0.45);
+                ctx.translate(20, -25);
+            }
+
+            // Aura
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.7)';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00f3ff';
+            ctx.shadowBlur = 16;
+            ctx.beginPath();
+            ctx.ellipse(0, 15, 30, 45, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Body
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.roundRect(-16, -20, 32, 50, 8);
+            ctx.fill();
+
+            // Head / Visor
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(0, -32, 16, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#00ff66';
+            ctx.shadowColor = '#00ff66';
+            ctx.shadowBlur = 12;
+            ctx.fillRect(-2, -35, 12, 7);
+
+            // Plasma Football resting at feet
+            if (playerKickTimer === 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#00ff66';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#00ff66';
+                ctx.shadowBlur = 18;
+                ctx.beginPath();
+                ctx.arc(28, 25 + Math.sin(time * 0.005) * 3, 12, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        function drawMonsterGoalkeeper(x, y, time) {
+            ctx.save();
+            ctx.translate(x, y);
+
+            if (monsterHitTimer > 0) {
+                const shakeX = (Math.random() - 0.5) * 25;
+                const shakeY = (Math.random() - 0.5) * 25;
+                ctx.translate(shakeX, shakeY);
+            }
+
+            const floatY = Math.sin(time * 0.003) * 8;
+            ctx.translate(0, floatY);
+
+            const stageId = TOURNAMENT_STAGES[currentLevelIdx].id;
+
+            // Visual Flash on hit
+            if (monsterHitTimer > 0) {
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 45;
+            } else {
+                ctx.fillStyle = stageId === 7 ? '#f59e0b' : (stageId % 2 === 0 ? '#e11d48' : '#7c3aed');
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 25;
+            }
+
+            // Monster Body
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 65, 85, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Cyber Arms
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(-70, -20);
+            ctx.lineTo(-100, -50 + Math.sin(time * 0.005) * 15);
+            ctx.moveTo(70, -20);
+            ctx.lineTo(100, -50 + Math.cos(time * 0.005) * 15);
+            ctx.stroke();
+
+            // Glowing Eye
+            ctx.fillStyle = '#00ff66';
+            ctx.shadowColor = '#00ff66';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(0, -25, 22, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Golden Crown for Final Boss NEXUS MUNDIAL OMEGA
+            if (stageId === 7) {
+                ctx.fillStyle = '#fbbf24';
+                ctx.shadowColor = '#fbbf24';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.moveTo(-35, -85);
+                ctx.lineTo(-20, -115);
+                ctx.lineTo(0, -90);
+                ctx.lineTo(20, -115);
+                ctx.lineTo(35, -85);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        /* MAIN GAME ANIMATION LOOP */
+        function gameLoop(time) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawStadiumBackground(time);
+
+            const playerX = canvas.width * 0.22;
+            const playerY = canvas.height * 0.68;
+
+            const monsterX = canvas.width * 0.78;
+            const monsterY = canvas.height * 0.62;
+
+            if (monsterHitTimer > 0) monsterHitTimer--;
+            if (playerKickTimer > 0) playerKickTimer--;
+            
+            if (monsterLaserTimer > 0) {
+                monsterLaserTimer--;
+                // Red Laser Counter-Attack Beam
+                ctx.save();
+                ctx.strokeStyle = '#ff0055';
+                ctx.lineWidth = 14;
+                ctx.shadowColor = '#ff0055';
+                ctx.shadowBlur = 30;
+                ctx.beginPath();
+                ctx.moveTo(monsterX, monsterY - 25);
+                ctx.lineTo(playerX, playerY);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            drawFutbolista(playerX, playerY, time);
+            drawMonsterGoalkeeper(monsterX, monsterY, time);
+
+            // Plasma Projectiles
+            for (let i = plasmaShots.length - 1; i >= 0; i--) {
+                const shot = plasmaShots[i];
+                shot.update();
+                shot.draw();
+                if (shot.progress >= 1) {
+                    monsterHitTimer = 22;
+                    for (let p = 0; p < 35; p++) {
+                        particles.push(new Particle(shot.targetX, shot.targetY, '#00ff66', 12, 5));
+                        particles.push(new Particle(shot.targetX, shot.targetY, '#ffcc00', 9, 4));
+                    }
+                    plasmaShots.splice(i, 1);
+                }
+            }
+
+            // Explosive Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+
+            // Floating Combat Damage Text
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.update();
+                ft.draw();
+                if (ft.life <= 0) floatingTexts.splice(i, 1);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+        requestAnimationFrame(gameLoop);
+
+
+        /* HUD UPDATER */
+        function updateHUD() {
+            const stage = TOURNAMENT_STAGES[currentLevelIdx];
+            document.getElementById("levelTournamentStage").innerText = stage.stage;
+            document.getElementById("monsterNameDisplay").innerText = stage.bossName;
+            document.getElementById("monsterTitleDisplay").innerText = stage.bossTitle;
+            document.getElementById("monsterIcon").className = `fa-solid ${stage.icon}`;
+
+            document.getElementById("levelNumber").innerText = `${currentLevelIdx + 1} / ${TOURNAMENT_STAGES.length}`;
+            document.getElementById("questionProgress").innerText = `${currentQuestionInLevelIndex + 1} / ${currentLevelQuestions.length}`;
+
+            document.getElementById("monsterHpText").innerText = `${monsterHp} / ${maxMonsterHp} HP`;
+            document.getElementById("monsterHpBar").style.width = `${Math.max(0, (monsterHp / maxMonsterHp) * 100)}%`;
+
+            document.getElementById("scoreDisplay").innerText = score;
+            document.getElementById("streakCount").innerText = goalStreak;
+        }
+
+        /* LEVEL INITIALIZER & RESTART ENGINE */
+        function setupLevel(levelIdx) {
+            currentLevelIdx = levelIdx;
+            currentQuestionInLevelIndex = 0;
+            
+            const stage = TOURNAMENT_STAGES[currentLevelIdx];
+            monsterHp = stage.hp;
+            maxMonsterHp = stage.hp;
+
+            // DRAW 3 BRAND NEW UNSEEN QUESTIONS
+            currentLevelQuestions = getUnseenQuestionsForLevel(3);
+
+            updateHUD();
+            loadCurrentQuestion();
+        }
+
+        /* QUESTION DISPLAY ENGINE */
+        function loadCurrentQuestion() {
+            const qData = currentLevelQuestions[currentQuestionInLevelIndex];
+
+            document.getElementById("questionText").innerText = qData.q;
+            const container = document.getElementById("optionsContainer");
+            container.innerHTML = "";
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left p-3.5 rounded-xl bg-slate-900/90 border border-slate-700 hover:border-emerald-400 hover:bg-emerald-950/40 text-xs md:text-sm text-slate-100 transition-all duration-200 flex items-center gap-3 shadow-md";
+                btn.innerHTML = `<span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-400/40 flex items-center justify-center font-orbitron font-bold text-xs">${String.fromCharCode(65 + idx)}</span> <span>${opt}</span>`;
+                btn.onclick = () => selectOption(idx);
+                container.appendChild(btn);
+            });
+
+            startQuestionTimer();
+        }
+
+        function startQuestionTimer() {
+            clearInterval(questionTimer);
+            timeLeft = 20;
+            const timerBar = document.getElementById("questionTimerBar");
+            const timerText = document.getElementById("timerText");
+
+            questionTimer = setInterval(() => {
+                if (isPaused) return;
+                timeLeft -= 0.1;
+                timerText.innerText = `${Math.ceil(timeLeft)}s`;
+                timerBar.style.width = `${(timeLeft / 20) * 100}%`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimer);
+                    handleWrongAnswer("¡TIEMPO AGOTADO! El Monstruo aprovechó tu lentitud para disparar un rayo destructor.");
+                }
+            }, 100);
+        }
+
+        function triggerScreenShake() {
+            document.body.classList.add("shake-screen");
+            setTimeout(() => document.body.classList.remove("shake-screen"), 450);
+        }
+
+        function triggerRedGlitchFlash() {
+            const overlay = document.getElementById("damageOverlay");
+            overlay.classList.add("glitch-flash");
+            setTimeout(() => overlay.classList.remove("glitch-flash"), 500);
+        }
+
+        function selectOption(selectedIdx) {
+            audio.init();
+            clearInterval(questionTimer);
+            const qData = currentLevelQuestions[currentQuestionInLevelIndex];
+
+            if (selectedIdx === qData.correct) {
+                // Correct Choice -> Remate & Monster Hit
+                playerKickTimer = 22;
+                audio.playKick();
+                audio.playMonsterHit();
+
+                const damage = 100;
+                monsterHp = Math.max(0, monsterHp - damage);
+                score += 250 + (goalStreak * 50);
+                goalStreak++;
+                totalCorrectAnswers++;
+
+                const px = canvas.width * 0.22;
+                const py = canvas.height * 0.68;
+                const mx = canvas.width * 0.78;
+                const my = canvas.height * 0.62;
+
+                plasmaShots.push(new PlasmaBallShot(px + 30, py, mx, my));
+                floatingTexts.push(new FloatingText(`-${damage} HP ¡GOOLAZO!`, mx - 40, my - 50, '#00ff66'));
+
+                triggerScreenShake();
+                updateHUD();
+
+                showFeedback(true, `-${damage} HP IMPACTO DIRECTO DE PLASMA`, qData.explanation);
+            } else {
+                handleWrongAnswer(qData.explanation);
+            }
+        }
+
+        /* PENALIZATION WRONG ANSWER (FORCE RESTART LEVEL WITH NEW QUESTIONS) */
+        function handleWrongAnswer(explanation) {
+            audio.init();
+            audio.playLaserError();
+            audio.playWhistle();
+
+            monsterLaserTimer = 22;
+            goalStreak = 0;
+
+            triggerScreenShake();
+            triggerRedGlitchFlash();
+
+            const px = canvas.width * 0.22;
+            const py = canvas.height * 0.68;
+            floatingTexts.push(new FloatingText(`¡ATAQUE DE LÁSER Y REINICIO DE NIVEL!`, px - 40, py - 50, '#ff0055'));
+
+            updateHUD();
+
+            showFeedback(false, "¡ERROR! REINICIANDO NIVEL CON PREGUNTAS NUEVAS", explanation);
+        }
+
+        function showFeedback(isSuccess, titleDamage, explanation) {
+            const modal = document.getElementById("feedbackModal");
+            const iconContainer = document.getElementById("feedbackIconContainer");
+            const icon = document.getElementById("feedbackIcon");
+            const title = document.getElementById("feedbackTitle");
+            const damageText = document.getElementById("feedbackDamageText");
+            const expText = document.getElementById("feedbackExplanation");
+
+            if (isSuccess) {
+                iconContainer.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 bg-emerald-500/20 text-emerald-400 border border-emerald-400";
+                icon.className = "fa-solid fa-futbol";
+                title.innerText = "¡GOOLAZO Y MANDOBLE AL MONSTRUO!";
+                title.className = "font-orbitron text-xl md:text-2xl font-black text-emerald-400 mb-1";
+                damageText.innerText = titleDamage;
+                damageText.className = "font-orbitron text-sm font-bold text-amber-400 mb-3";
+            } else {
+                iconContainer.className = "w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-3 bg-rose-500/20 text-rose-400 border border-rose-400";
+                icon.className = "fa-solid fa-triangle-exclamation";
+                title.innerText = "¡BLOQUEO LÁSER! NIVEL REINICIADO";
+                title.className = "font-orbitron text-xl md:text-2xl font-black text-rose-400 mb-1";
+                damageText.innerText = titleDamage;
+                damageText.className = "font-orbitron text-sm font-bold text-rose-400 mb-3";
+            }
+
+            expText.innerHTML = `<strong class="text-white">DATO HISTÓRICO FIFA:</strong> ${explanation}`;
+            modal.classList.remove("hidden");
+        }
+
+        document.getElementById("btnContinueFeedback").onclick = () => {
+            document.getElementById("feedbackModal").classList.add("hidden");
+
+            if (monsterHp <= 0) {
+                advanceLevel();
+            } else if (goalStreak === 0) {
+                // FAILED PREVIOUS QUESTION -> RESTART LEVEL WITH BRAND NEW UNSEEN QUESTIONS
+                setupLevel(currentLevelIdx);
+            } else {
+                if (currentQuestionInLevelIndex < currentLevelQuestions.length - 1) {
+                    currentQuestionInLevelIndex++;
+                }
+                updateHUD();
+                loadCurrentQuestion();
+            }
+        };
+
+        function advanceLevel() {
+            audio.playFanfare();
+            currentLevelIdx++;
+
+            if (currentLevelIdx >= TOURNAMENT_STAGES.length) {
+                showVictoryScreen();
+            } else {
+                setupLevel(currentLevelIdx);
+            }
+        }
+
+        function showVictoryScreen() {
+            audio.playFanfare();
+            const modal = document.getElementById("victoryModal");
+            const stats = document.getElementById("victoryStats");
+
+            for (let i = 0; i < 140; i++) {
+                particles.push(new Particle(canvas.width / 2, canvas.height / 2, i % 2 === 0 ? '#ffcc00' : '#00ff66', 16, 6));
+            }
+
+            stats.innerHTML = `
+                <p class="mb-1"><strong>PUNTUACIÓN FINAL:</strong> <span class="text-amber-400 font-bold">${score} PTS</span></p>
+                <p class="mb-1"><strong>RESPUESTAS CORRECTAS:</strong> <span class="text-emerald-400 font-bold">${totalCorrectAnswers} PREGUNTAS</span></p>
+                <p class="mb-1"><strong>PREGUNTAS ÚNICAS UTILIZADAS:</strong> <span class="text-cyan-400 font-bold">${seenQuestionIds.size} PREGUNTAS</span></p>
+                <p><strong>HAZAÑA:</strong> Has conquistado los 7 Niveles derrotando a NEXUS MUNDIAL OMEGA sin repetir preguntas.</p>
+            `;
+
+            modal.classList.remove("hidden");
+        }
+
+        /* BUTTON EVENT LISTENERS */
+        document.getElementById("btnStartGame").onclick = () => {
+            audio.init();
+            document.getElementById("menuModal").classList.add("hidden");
+            seenQuestionIds.clear();
+            score = 0;
+            goalStreak = 0;
+            totalCorrectAnswers = 0;
+            setupLevel(0);
+        };
+
+        document.getElementById("btnHowToPlay").onclick = () => {
+            document.getElementById("rulesModal").classList.remove("hidden");
+        };
+
+        document.getElementById("btnCloseRules").onclick = () => {
+            document.getElementById("rulesModal").classList.add("hidden");
+        };
+
+        document.getElementById("btnPause").onclick = () => {
+            isPaused = true;
+            document.getElementById("pauseModal").classList.remove("hidden");
+        };
+
+        document.getElementById("btnResume").onclick = () => {
+            isPaused = false;
+            document.getElementById("pauseModal").classList.add("hidden");
+        };
+
+        document.getElementById("btnRestartLevel").onclick = () => {
+            isPaused = false;
+            document.getElementById("pauseModal").classList.add("hidden");
+            setupLevel(currentLevelIdx);
+        };
+
+        document.getElementById("btnPlayAgain").onclick = () => {
+            document.getElementById("victoryModal").classList.add("hidden");
+            document.getElementById("menuModal").classList.remove("hidden");
+        };
+
+        document.getElementById("btnSoundToggle").onclick = () => {
+            audio.muted = !audio.muted;
+            const icon = document.getElementById("soundIcon");
+            icon.className = audio.muted ? "fa-solid fa-volume-xmark text-rose-400" : "fa-solid fa-volume-high text-cyan-400";
+        };
+    </script>
+</body>
+</html>
